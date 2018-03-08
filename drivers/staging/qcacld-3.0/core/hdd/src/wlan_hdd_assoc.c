@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2018 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -1690,6 +1690,9 @@ static QDF_STATUS hdd_dis_connect_handler(hdd_adapter_t *pAdapter,
 
 	pAdapter->hdd_stats.hddTxRxStats.cont_txtimeout_cnt = 0;
 
+	hdd_debug("check for SAP restart");
+	cds_check_concurrent_intf_and_restart_sap(pAdapter);
+
 	/* Unblock anyone waiting for disconnect to complete */
 	complete(&pAdapter->disconnect_comp_var);
 	hdd_print_bss_info(pHddStaCtx);
@@ -1844,6 +1847,7 @@ QDF_STATUS hdd_roam_register_sta(hdd_adapter_t *pAdapter,
 	/* Register the vdev transmit and receive functions */
 	qdf_mem_zero(&txrx_ops, sizeof(txrx_ops));
 	txrx_ops.rx.rx = hdd_rx_packet_cbk;
+	txrx_ops.rx.stats_rx = hdd_tx_rx_collect_connectivity_stats_info;
 	ol_txrx_vdev_register(
 		 ol_txrx_get_vdev_from_vdev_id(pAdapter->sessionId),
 		 pAdapter, &txrx_ops);
@@ -3588,6 +3592,7 @@ QDF_STATUS hdd_roam_register_tdlssta(hdd_adapter_t *pAdapter,
 	/* Register the vdev transmit and receive functions */
 	qdf_mem_zero(&txrx_ops, sizeof(txrx_ops));
 	txrx_ops.rx.rx = hdd_rx_packet_cbk;
+	txrx_ops.rx.stats_rx = hdd_tx_rx_collect_connectivity_stats_info;
 	ol_txrx_vdev_register(
 		 ol_txrx_get_vdev_from_vdev_id(pAdapter->sessionId),
 		 pAdapter, &txrx_ops);
